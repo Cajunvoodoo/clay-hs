@@ -1,0 +1,83 @@
+cabal-version:      3.0
+name:               clay-hs
+version:            0.1.0.0
+-- synopsis:
+-- description:
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             Cajunvoodoo
+maintainer:         27892784+Cajunvoodoo@users.noreply.github.com
+-- copyright:
+category:           Graphics
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+-- extra-source-files:
+
+common warnings
+    ghc-options: -Wall
+
+common extensions
+  default-extensions:
+    AllowAmbiguousTypes
+    Arrows
+    BlockArguments
+    DataKinds
+    DeriveAnyClass
+    DerivingStrategies
+    DerivingVia
+    DuplicateRecordFields
+    FunctionalDependencies
+    LambdaCase
+    NoMonomorphismRestriction
+    NoStarIsType
+    OverloadedLabels
+    OverloadedLists
+    OverloadedStrings
+    PatternSynonyms
+    PolyKinds
+    QuasiQuotes
+    RecordWildCards
+    RoleAnnotations
+    TemplateHaskell
+    TypeFamilies
+    TypeFamilyDependencies
+    TypeOperators
+    ViewPatterns
+    CApiFFI
+
+library
+    import:           warnings, extensions
+    exposed-modules:
+      Clay
+      Clay.Raw
+      Clay.Raw.Types
+      Clay.Raw.Context
+      Clay.Raw.Functions
+    -- other-modules:
+    -- other-extensions:
+    build-depends:
+      , base ^>=4.18.2.1
+      , inline-c
+      , derive-storable
+      , derive-storable-plugin
+      , containers
+
+    hs-source-dirs:   src
+    default-language: GHC2021
+    include-dirs: includes
+    install-includes: clay.h
+    ghc-options:
+      -fplugin=Foreign.Storable.Generic.Plugin
+    -- c-sources: includes/clay.h
+
+test-suite clay-hs-test
+    import:           warnings, extensions
+    default-language: GHC2021
+    -- other-modules:
+    -- other-extensions:
+    type:             exitcode-stdio-1.0
+    hs-source-dirs:   test
+    main-is:          Main.hs
+    build-depends:
+        base ^>=4.18.2.1,
+        clay-hs
