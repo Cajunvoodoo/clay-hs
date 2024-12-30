@@ -12,9 +12,6 @@ C.include "clay.h"
 foreign import capi "clay.h Clay_MinMemorySize"
   clayMinMemorySize :: IO CUInt
 
--- foreign import capi "clay.h Clay_CreateArenaWithCapacityAndMemory"
---   clayCreateArenaWithCapacityAndMemory :: forall a. Word32 -> Ptr a -> IO ClayArena
-
 -- | @ Clay_Arena Clay_CreateArenaWithCapacityAndMemory(uint32_t capacity, void *offset); @
 clayCreateArenaWithCapacityAndMemory :: Word32 -> Ptr () -> IO ClayArena
 clayCreateArenaWithCapacityAndMemory capacity offset =
