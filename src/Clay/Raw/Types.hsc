@@ -147,6 +147,20 @@ data ClayPointerData = ClayPointerData
   deriving stock (Show, Generic)
   deriving anyclass (GStorable)
 
+data ClayTextElementConfig = ClayTextElementConfig
+  { textColor :: ClayColor
+  , fontId :: Word16
+  , fontSize :: Word16
+  , letterSpacing :: Word16
+  , lineHeight :: Word16
+  , wrapMode :: ClayTextElementConfigWrapMode
+  #ifdef CLAY_EXTEND_CONFIG_TEXT
+  , CLAY_EXTEND_CONFIG_TEXT_HASKELL
+  #endif
+  }
+  deriving stock (Show, Generic)
+  deriving anyclass (GStorable)
+
 -- ENUMERATIONS ----------------------------------------------------------------
 
 newtype ClayLayoutDirection = ClayLayoutDirection {unClayLayoutDirection :: CInt}

@@ -6,10 +6,11 @@ import Language.C.Inline.Context
 import Language.C.Types (pattern TypeName)
 
 clayContext :: Context
-clayContext = baseCtx <> mempty
+clayContext = baseCtx <> funCtx <> mempty
   { ctxTypesTable =
     Map.fromList
       [ (TypeName "Clay_Arena", [t| ClayArena |])
+      , (TypeName "Clay_PointerData", [t| ClayPointerData |])
       , (TypeName "Clay_String", [t| ClayString |])
       , (TypeName "Clay_Vector2", [t| ClayVector2 |])
       , (TypeName "Clay_Dimensions", [t| ClayDimensions |])
@@ -18,5 +19,6 @@ clayContext = baseCtx <> mempty
       , (TypeName "Clay_ElementId", [t| ClayElementId |])
       , (TypeName "Clay_ScrollContainerData", [t| ClayScrollContainerData |])
       , (TypeName "Clay_ScrollElementConfig", [t| ClayScrollElementConfig |])
+      , (TypeName "Clay_TextElementConfig", [t| ClayTextElementConfig |])
       ]
   }

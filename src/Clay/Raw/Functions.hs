@@ -84,8 +84,31 @@ clayGetElementIdWithIndex idString index =
 foreign import capi "clay.h Clay_Hovered"
   clayHovered :: IO Bool
 
+-- | A function to call on hover, provided to 'clayOnHover'. The type is wrapped;
+-- the original C passes structs by-value, but structs cannot be marshalled.
+-- Therefore, we wrap the values with pointers and pass a function ad-hoc to
+-- @Clay_OnHover@.
+type OnHoverFunction = Ptr ClayElementId -> Ptr ClayPointerData -> CIntPtr -> IO ()
+
 -- | @ void Clay_OnHover(void (*onHoverFunction)(Clay_ElementId elementId, Clay_PointerData pointerData, intptr_t userData), intptr_t userData); @
--- clayOnHover :: FunPtr ()
+--
+-- The returned 'FunPtr' must be manually freed using 'freeHaskellFunPtr' when
+-- it is no longer needed.
+clayOnHover :: OnHoverFunction -> CIntPtr -> IO (FunPtr OnHoverFunction)
+clayOnHover onHoverFunctionWrapped userData = do
+  onHoverFunctionWrappedPtr <-
+    $(C.mkFunPtr [t| OnHoverFunction |]) onHoverFunctionWrapped
+  [C.block| void {
+     void (*onHoverFunction)(Clay_ElementId, Clay_PointerData, intptr_t);
+     onHoverFunction = (void (*)(Clay_ElementId, Clay_PointerData, intptr_t))({
+       void innerWrapper(Clay_ElementId elementId, Clay_PointerData pointerData, intptr_t userData) {
+         $(void (*onHoverFunctionWrappedPtr)(Clay_ElementId*, Clay_PointerData*, intptr_t))(&elementId, &pointerData, userData);
+       }
+       innerWrapper;
+     });
+     Clay_OnHover(onHoverFunction, $(intptr_t userData));
+  }|]
+  pure onHoverFunctionWrappedPtr
 
 -- | @ bool Clay_PointerOver(Clay_ElementId elementId); @
 clayPointerOver :: ClayElementId -> IO Bool
@@ -103,11 +126,66 @@ clayGetScrollContainerData id =
          return;
       }|]
 
+-- | Wrapped function pointer for 'claySetMeasureTextFunction', which wraps
+-- @Clay_SetMeasureTextFunction@. Rather than accept the return value as a pointer,
+-- it ought to be placed into the memory pointed to by the third argument.
+type MeasureTextFunction
+   = Ptr ClayString -- ^ text,[in]
+  -> Ptr ClayTextElementConfig -- ^ config, [in]
+  -> Ptr ClayDimensions -- ^ [out]
+  -> IO ()
+
 -- | @ void Clay_SetMeasureTextFunction(Clay_Dimensions (*measureTextFunction)(Clay_String *text, Clay_TextElementConfig *config)); @
--- TODO: Clay_SetMeasureTextFunction here
+--
+-- The returned 'FunPtr' must be manually freed using 'freeHaskellFunPtr' when
+-- it is no longer needed.
+claySetMeasureTextFunction :: MeasureTextFunction -> IO (FunPtr MeasureTextFunction)
+claySetMeasureTextFunction measureTextFunctionWrapped = do
+  measureTextFunctionWrappedPtr <-
+    $(C.mkFunPtr [t| MeasureTextFunction |]) measureTextFunctionWrapped
+  [C.block| void {
+     Clay_Dimensions (*measureTextFunction)(Clay_String*, Clay_TextElementConfig*);
+     measureTextFunction = (Clay_Dimensions (*)(Clay_String*, Clay_TextElementConfig*))({
+       Clay_Dimensions innerWrapper(Clay_String* text, Clay_TextElementConfig* config) {
+         Clay_Dimensions retDimensions;
+         $(void (*measureTextFunctionWrappedPtr)(Clay_String*, Clay_TextElementConfig*, Clay_Dimensions*))(text, config, &retDimensions);
+         return retDimensions;
+       }
+       innerWrapper;
+     });
+     Clay_SetMeasureTextFunction(measureTextFunction);
+  }|]
+  pure measureTextFunctionWrappedPtr
+
+-- | Wrapped function pointer for 'claySetQueryScrollOffsetFunction', which wraps
+-- @Clay_SetQueryScrollOffsetFunction@. Rather than accept the return value as a
+-- pointer, it ought to be placed into the memory pointed to by the second argument.
+type QueryScrollOffsetFunction
+   = Word32 -- ^ elementId, [in]
+  -> Ptr ClayVector2 -- ^ [out]
+  -> IO ()
 
 -- | @ void Clay_SetQueryScrollOffsetFunction(Clay_Vector2 (*queryScrollOffsetFunction)(uint32_t elementId)); @
--- TODO: Clay_SetQueryScrollOffsetFunction here
+--
+-- The returned 'FunPtr' must be manually freed using 'freeHaskellFunPtr' when
+-- it is no longer needed.
+claySetQueryScrollOffsetFunction :: QueryScrollOffsetFunction -> IO (FunPtr QueryScrollOffsetFunction)
+claySetQueryScrollOffsetFunction qsofWrapped = do
+  qsofWrappedPtr <- $(C.mkFunPtr [t| QueryScrollOffsetFunction |]) qsofWrapped
+  [C.block| void {
+     Clay_Vector2 (*qsof)(uint32_t);
+     qsof = (Clay_Vector2 (*)(uint32_t))({
+       Clay_Vector2 innerWrapper(uint32_t elementId) {
+         Clay_Vector2 retVec;
+         $(void (*qsofWrappedPtr)(uint32_t, Clay_Vector2*))(elementId, &retVec);
+         return retVec;
+       }
+       innerWrapper;
+     });
+     Clay_SetQueryScrollOffsetFunction(qsof);
+  }|]
+
+  pure qsofWrappedPtr
 
 -- | @ Clay_RenderCommand* Clay_RenderCommandArray_Get(Clay_RenderCommandArray* array, int32_t index); @
 foreign import capi "clay.h Clay_RenderCommandArray_Get"
@@ -132,9 +210,6 @@ foreign import capi "clay.h Clay_SetMaxMeasureTextCacheWordCount"
 {-
 Functions to wrap:
 - Public API:
-void Clay_OnHover(void (*onHoverFunction)(Clay_ElementId elementId, Clay_PointerData pointerData, intptr_t userData), intptr_t userData);
-void Clay_SetMeasureTextFunction(Clay_Dimensions (*measureTextFunction)(Clay_String *text, Clay_TextElementConfig *config));
-void Clay_SetQueryScrollOffsetFunction(Clay_Vector2 (*queryScrollOffsetFunction)(uint32_t elementId));
 
 - Private API (used by macros)
 void Clay__OpenElement(void);
@@ -157,19 +232,10 @@ void Clay__OpenTextElement(Clay_String text, Clay_TextElementConfig *textConfig)
 
 Types to wrap:
 - Clay_ErrorHandler
-- Clay_PointerData
-- Clay_TextElementConfig
 - Clay_RenderCommandArray*
-- (ClayString* text, Clay_TextElementConfig* config) -> Clay_Dimensions ("measureTextFunction")
-- (uint32_t elementId) -> Clay_Vector2 ("queryScrollOffsetFunction")
-- (Clay_ElementId elementId, Clay_PointerData pointerData, intptr_t userData) -> IO () ("onHoverFunction")
-- Clay_
-- Clay_
-- Clay_
-- Clay_
-- Clay_
-- Clay_
 -}
+
+-- UTILITIES -------------------------------------------------------------------
 
 -- | Like 'alloca', but 'poke's the provided value into the pointer before
 -- calling the action with the allocated 'Ptr'.
