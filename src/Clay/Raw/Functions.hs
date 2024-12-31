@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 module Clay.Raw.Functions where
 
 import Clay.Raw.Context (clayContext)
@@ -50,23 +51,90 @@ claySetLayoutDimensions dimensions =
 -- | @ void Clay_BeginLayout(void); @
 foreign import capi "clay.h Clay_BeginLayout" clayBeginLayout :: IO ()
 
+-- | @ Clay_RenderCommandArray Clay_EndLayout(void); @
+clayEndLayout :: IO ClayRenderCommandArray
+clayEndLayout =
+  C.withPtr_ \cmdPtr ->
+    [C.block| void {
+       *$(Clay_RenderCommandArray* cmdPtr) = Clay_EndLayout();
+       return;
+    }|]
+
+-- | @ Clay_ElementId Clay_GetElementId(Clay_String idString); @
+clayGetElementId :: ClayString -> IO ClayElementId
+clayGetElementId idString =
+  C.withPtr_ \elemIdPtr ->
+    withValPtr idString \idStrPtr ->
+      [C.block| void {
+         *$(Clay_ElementId* elemIdPtr) = Clay_GetElementId(*$(Clay_String* idStrPtr));
+         return;
+      }|]
+
+-- | @ Clay_ElementId Clay_GetElementIdWithIndex(Clay_String idString, uint32_t index); @
+clayGetElementIdWithIndex :: ClayString -> Word32 -> IO ClayElementId
+clayGetElementIdWithIndex idString index =
+  C.withPtr_ \elemIdPtr ->
+    withValPtr idString \idStrPtr ->
+      [C.block| void {
+         *$(Clay_ElementId* elemIdPtr) = Clay_GetElementIdWithIndex(*$(Clay_String* idStrPtr), $(uint32_t index));
+         return;
+      }|]
+
+-- | @ bool Clay_Hovered(void); @
+foreign import capi "clay.h Clay_Hovered"
+  clayHovered :: IO Bool
+
+-- | @ void Clay_OnHover(void (*onHoverFunction)(Clay_ElementId elementId, Clay_PointerData pointerData, intptr_t userData), intptr_t userData); @
+-- clayOnHover :: FunPtr ()
+
+-- | @ bool Clay_PointerOver(Clay_ElementId elementId); @
+clayPointerOver :: ClayElementId -> IO Bool
+clayPointerOver elementId =
+  withValPtr elementId \elemIdPtr ->
+    toBool <$> [C.exp| bool {Clay_PointerOver(*$(Clay_ElementId* elemIdPtr))} |]
+
+-- | @ Clay_ScrollContainerData Clay_GetScrollContainerData(Clay_ElementId id); @
+clayGetScrollContainerData :: ClayElementId -> IO ClayScrollContainerData
+clayGetScrollContainerData id =
+  C.withPtr_ \containerPtr ->
+    withValPtr id \idPtr ->
+      [C.block| void {
+         *$(Clay_ScrollContainerData* containerPtr) = Clay_GetScrollContainerData(*$(Clay_ElementId* idPtr));
+         return;
+      }|]
+
+-- | @ void Clay_SetMeasureTextFunction(Clay_Dimensions (*measureTextFunction)(Clay_String *text, Clay_TextElementConfig *config)); @
+-- TODO: Clay_SetMeasureTextFunction here
+
+-- | @ void Clay_SetQueryScrollOffsetFunction(Clay_Vector2 (*queryScrollOffsetFunction)(uint32_t elementId)); @
+-- TODO: Clay_SetQueryScrollOffsetFunction here
+
+-- | @ Clay_RenderCommand* Clay_RenderCommandArray_Get(Clay_RenderCommandArray* array, int32_t index); @
+foreign import capi "clay.h Clay_RenderCommandArray_Get"
+  clayRenderCommandArrayGet :: Ptr ClayRenderCommandArray -> Int32 -> IO (Ptr ClayRenderCommand)
+
+-- | @ void Clay_SetDebugModeEnabled(bool enabled); @
+foreign import capi "clay.h Clay_SetDebugModeEnabled"
+  claySetDebugModeEnabled :: Bool -> IO ()
+
+-- | @ void Clay_SetCullingEnabled(bool enabled); @
+foreign import capi "clay.h Clay_SetCullingEnabled"
+  claySetCullingEnabled :: Bool -> IO ()
+
+-- | @ void Clay_SetMaxElementCount(uint32_t maxElementCount); @
+foreign import capi "clay.h Clay_SetMaxElementCount"
+  claySetMaxElementCount :: Word32 -> IO ()
+
+-- | @ void Clay_SetMaxMeasureTextCacheWordCount(uint32_t maxMeasureTextCacheWordCount); @
+foreign import capi "clay.h Clay_SetMaxMeasureTextCacheWordCount"
+  claySetMaxMeasureTextCacheWordCount :: Word32 -> IO ()
+
 {-
 Functions to wrap:
 - Public API:
-Clay_RenderCommandArray Clay_EndLayout(void);
-Clay_ElementId Clay_GetElementId(Clay_String idString);
-Clay_ElementId Clay_GetElementIdWithIndex(Clay_String idString, uint32_t index);
-bool Clay_Hovered(void);
 void Clay_OnHover(void (*onHoverFunction)(Clay_ElementId elementId, Clay_PointerData pointerData, intptr_t userData), intptr_t userData);
-bool Clay_PointerOver(Clay_ElementId elementId);
-Clay_ScrollContainerData Clay_GetScrollContainerData(Clay_ElementId id);
 void Clay_SetMeasureTextFunction(Clay_Dimensions (*measureTextFunction)(Clay_String *text, Clay_TextElementConfig *config));
 void Clay_SetQueryScrollOffsetFunction(Clay_Vector2 (*queryScrollOffsetFunction)(uint32_t elementId));
-Clay_RenderCommand * Clay_RenderCommandArray_Get(Clay_RenderCommandArray* array, int32_t index);
-void Clay_SetDebugModeEnabled(bool enabled);
-void Clay_SetCullingEnabled(bool enabled);
-void Clay_SetMaxElementCount(uint32_t maxElementCount);
-void Clay_SetMaxMeasureTextCacheWordCount(uint32_t maxMeasureTextCacheWordCount);
 
 - Private API (used by macros)
 void Clay__OpenElement(void);

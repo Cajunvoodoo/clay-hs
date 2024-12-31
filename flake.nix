@@ -43,6 +43,7 @@
                 (fileFilter (file: file.hasExt "hsc") dir)
                 (fileFilter (file: file.hasExt "cabal") dir)
                 (fileFilter (file: file.hasExt "md") dir)
+                (fileFilter (file: file.hasExt "h") dir)
                 (fileFilter (file: file.name == "LICENSE") dir)
               ]);
         };

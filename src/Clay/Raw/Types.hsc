@@ -6,19 +6,10 @@ module Clay.Raw.Types where
 
 import Foreign
 import Foreign.C.Types
-import Language.C.Inline qualified as C
 import Foreign.Storable.Generic
 import GHC.Generics
 
-{-
-data    {-# CTYPE "unistd.h" "useconds_t" #-} T = ...
-newtype {-# CTYPE            "useconds_t" #-} T = ...
--}
-
--- C.include "<clay.h>"
 #define CLAY_IMPLEMENTATION
--- C.include "clay.h"
--- #include "clay.h"
 #include "clay.h"
 
 
@@ -106,6 +97,52 @@ data ClayErrorData = ClayErrorData
 data ClayErrorHandler = ClayErrorHandler
   { errorHandlerFunction :: FunPtr (ClayErrorData -> IO ()) -- requires manual memory management!
   , userData :: WordPtr
+  }
+  deriving stock (Show, Generic)
+  deriving anyclass (GStorable)
+
+-- | This  is an untyped union, where all the elements are pointers to various
+-- 'Clay*Config' types.
+type ClayElementConfigUnion = Ptr ()
+
+data ClayRenderCommand = ClayRenderCommand
+  { boundingBox :: ClayBoundingBox
+  , config :: ClayElementConfigUnion
+  , text :: ClayString
+  , id :: Word32
+  , commandType :: ClayRenderCommandType
+  }
+  deriving stock (Show, Generic)
+  deriving anyclass (GStorable)
+
+data ClayRenderCommandArray = ClayRenderCommandArray
+  { capacity :: Word32
+  , length :: Word32
+  , internalArray :: Ptr ClayRenderCommand
+  }
+  deriving stock (Show, Generic)
+  deriving anyclass (GStorable)
+
+data ClayScrollElementConfig = ClayScrollElementConfig
+  { horizontal :: Bool
+  , vertical :: Bool
+  }
+  deriving stock (Show, Generic)
+  deriving anyclass (GStorable)
+
+data ClayScrollContainerData = ClayScrollContainerData
+  { scrollPosition :: Ptr ClayVector2
+  , scrollContainerDimensions :: ClayDimensions
+  , contentDimensions :: ClayDimensions
+  , config :: ClayScrollElementConfig
+  , found :: Bool
+  }
+  deriving stock (Show, Generic)
+  deriving anyclass (GStorable)
+
+data ClayPointerData = ClayPointerData
+  { position :: ClayVector2
+  , state :: ClayPointerDataInteractionState
   }
   deriving stock (Show, Generic)
   deriving anyclass (GStorable)
