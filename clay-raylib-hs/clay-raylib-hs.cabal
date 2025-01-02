@@ -1,5 +1,5 @@
 cabal-version:      3.0
-name:               clay-hs
+name:               clay-raylib-hs
 version:            0.1.0.0
 -- synopsis:
 -- description:
@@ -48,15 +48,13 @@ common extensions
 library
     import:           warnings, extensions
     exposed-modules:
-      Clay
-      Clay.Raw
-      Clay.Raw.Types
-      Clay.Raw.Context
-      Clay.Raw.Functions
+      Clay.Raylib
+      -- Clay.Raylib.Raw.Types
     -- other-modules:
     -- other-extensions:
     build-depends:
       , base ^>=4.18.2.1
+      , clay-hs
       , inline-c
       , derive-storable
       , derive-storable-plugin
@@ -64,13 +62,12 @@ library
 
     hs-source-dirs:   src
     default-language: GHC2021
-    include-dirs: includes
-    install-includes: clay.h
+    -- include-dirs: includes
+    -- install-includes: clay_renderer_raylib.c
     ghc-options:
       -fplugin=Foreign.Storable.Generic.Plugin
-    -- c-sources: includes/clay.h
 
-test-suite clay-hs-test
+test-suite clay-raylib-hs-test
     import:           warnings, extensions
     default-language: GHC2021
     -- other-modules:
@@ -79,5 +76,7 @@ test-suite clay-hs-test
     hs-source-dirs:   test
     main-is:          Main.hs
     build-depends:
-        base ^>=4.18.2.1,
-        clay-hs
+      , base ^>=4.18.2.1
+      , clay-raylib-hs
+      , bytestring
+      , h-raylib

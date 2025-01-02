@@ -52,7 +52,10 @@
           then
             pkgs.haskellPackages.override {
               overrides = final: prev: {
-                ${pname} = final.callCabal2nix pname (hsSrc ./.) {};
+                clay-hs = final.callCabal2nix pname (hsSrc ./clay-hs) {};
+                clay-raylib-hs = final.callCabal2nix pname (hsSrc ./clay-raylib-hs) {};
+
+                h-raylib = utils.fixup prev.h-raylib {};
               };
             }
           else pkgs.haskellPackages;
@@ -67,11 +70,13 @@
           then hp.${pname}
           else pkgs.hello;
 
+        packages.clay-raylib-hs = hp.clay-raylib-hs;
+
         devShells.default = hp.shellFor {
           packages = hpkgs:
             with hpkgs; (
               if buildProject
-              then [self'.packages.default]
+              then [self'.packages.default self'.packages.clay-raylib-hs]
               else []
             );
           nativeBuildInputs = with hp; with pkgs; [

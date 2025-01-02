@@ -1,2 +1,4 @@
 /.direnv/
 /dist-newstyle/
+/clay-hs/dist-newstyle/
+/clay-raylib-hs/dist-newstyle/

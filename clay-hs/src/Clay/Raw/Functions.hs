@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 module Clay.Raw.Functions where
 
@@ -7,6 +8,7 @@ import Foreign
 import Foreign.C.Types
 import Language.C.Inline qualified as C
 
+#define CLAY_IMPLEMENTATION
 C.context clayContext
 C.include "clay.h"
 
@@ -206,6 +208,8 @@ foreign import capi "clay.h Clay_SetMaxElementCount"
 -- | @ void Clay_SetMaxMeasureTextCacheWordCount(uint32_t maxMeasureTextCacheWordCount); @
 foreign import capi "clay.h Clay_SetMaxMeasureTextCacheWordCount"
   claySetMaxMeasureTextCacheWordCount :: Word32 -> IO ()
+
+-- Internal API Used by Macros -------------------------------------------------
 
 {-
 Functions to wrap:
