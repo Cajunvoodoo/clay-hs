@@ -53,10 +53,9 @@ library
       Clay.Raw.Types
       Clay.Raw.Context
       Clay.Raw.Functions
-    -- other-modules:
-    -- other-extensions:
     build-depends:
-      , base ^>=4.18.2.1
+      , clay-cbits
+      , base
       , inline-c
       , derive-storable
       , derive-storable-plugin
@@ -64,8 +63,6 @@ library
 
     hs-source-dirs:   src
     default-language: GHC2021
-    include-dirs: includes
-    install-includes: clay.h
     ghc-options:
       -fplugin=Foreign.Storable.Generic.Plugin
 
@@ -78,7 +75,7 @@ test-suite clay-hs-test
     hs-source-dirs:   test
     main-is:          Main.hs
     build-depends:
-      , base ^>=4.18.2.1
+      , base
       , clay-hs
       , bytestring
       , h-raylib

@@ -1,3 +1,4 @@
 packages:
+  clay-cbits/
   clay-hs/
   clay-raylib-hs/

@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 module Clay.Raw.Functions where
 
@@ -8,8 +7,8 @@ import Foreign
 import Foreign.C.Types
 import Language.C.Inline qualified as C
 
-#define CLAY_IMPLEMENTATION
 C.context clayContext
+C.verbatim "#define CLAY_IMPLEMENTATION"
 C.include "clay.h"
 
 foreign import capi "clay.h Clay_MinMemorySize"

@@ -51,11 +51,16 @@
           if buildProject
           then
             pkgs.haskellPackages.override {
+            # pkgs.haskell.packages.ghc984.override {
               overrides = final: prev: {
                 clay-hs = final.callCabal2nix pname (hsSrc ./clay-hs) {};
-                clay-raylib-hs = final.callCabal2nix pname (hsSrc ./clay-raylib-hs) {};
+                clay-cbits = final.callCabal2nix "clay-cbits" (hsSrc ./clay-cbits) {};
+                clay-raylib-hs = final.callCabal2nix "clay-raylib-hs" (hsSrc ./clay-raylib-hs) {};
+                clay-test = final.callCabal2nix "clay-test" (hsSrc ./clay-test) {};
 
                 h-raylib = utils.fixup prev.h-raylib {};
+
+                derive-storable-plugin = utils.fixup prev.derive-storable-plugin {jailbreak = true;};
               };
             }
           else pkgs.haskellPackages;
@@ -67,30 +72,33 @@
 
         packages.default =
           if buildProject
-          then hp.${pname}
+          then hp.clay-raylib-hs # hp.${pname}
           else pkgs.hello;
 
         packages.clay-raylib-hs = hp.clay-raylib-hs;
+        packages.clay-cbits = hp.clay-cbits;
+        packages.clay-test = hp.clay-test;
 
         devShells.default = hp.shellFor {
           packages = hpkgs:
             with hpkgs; (
               if buildProject
-              then [self'.packages.default self'.packages.clay-raylib-hs]
+              then [
+                # self'.packages.default
+                # self'.packages.clay-cbits
+                # self'.packages.clay-raylib-hs
+                self'.packages.clay-test
+              ]
               else []
             );
           nativeBuildInputs = with hp; with pkgs; [
-            cabal-fmt
+            # cabal-fmt
             cabal-install
-            fourmolu
-            haskell-language-server
-            c2hs
+            # fourmolu
+            # haskell-language-server
 
-            ghcid
-            ghciwatch
-
-            cabal-fmt
-            fourmolu
+            # ghcid
+            # ghciwatch
           ];
           shellHook = ''
             echo 1>&2 "Welcome to the development shell!"

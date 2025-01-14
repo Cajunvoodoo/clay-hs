@@ -1,4 +1,4 @@
-# Revision history for clay-test
+# Revision history for clay-cbits
 
 ## 0.1.0.0 -- YYYY-mm-dd
 

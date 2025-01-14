@@ -49,34 +49,34 @@ library
     import:           warnings, extensions
     exposed-modules:
       Clay.Raylib
-      -- Clay.Raylib.Raw.Types
+      Clay.Raylib.Raw.Types
     -- other-modules:
     -- other-extensions:
     build-depends:
-      , base ^>=4.18.2.1
+      , base
       , clay-hs
       , inline-c
       , derive-storable
       , derive-storable-plugin
       , containers
-
+      , h-raylib
+      , bytestring
     hs-source-dirs:   src
     default-language: GHC2021
-    -- include-dirs: includes
-    -- install-includes: clay_renderer_raylib.c
-    ghc-options:
-      -fplugin=Foreign.Storable.Generic.Plugin
 
-test-suite clay-raylib-hs-test
+executable clay-raylib-hs
     import:           warnings, extensions
-    default-language: GHC2021
+    main-is:          Main.hs
     -- other-modules:
     -- other-extensions:
-    type:             exitcode-stdio-1.0
-    hs-source-dirs:   test
-    main-is:          Main.hs
     build-depends:
-      , base ^>=4.18.2.1
+      , base
       , clay-raylib-hs
       , bytestring
       , h-raylib
+      , clay-hs
+      , clay-cbits
+      , linear
+
+    hs-source-dirs:   app
+    default-language: GHC2021
